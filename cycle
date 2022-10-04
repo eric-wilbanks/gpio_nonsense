@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+
+from gpiozero import PWMLED
+from gpiozero import Button
+from time import sleep
+from signal import pause
+
+green = PWMLED("12",initial_value=0)
+red   = PWMLED("13",initial_value=0)
+blue  = PWMLED("18",initial_value=0)
+button = Button(2)
+
+def reset():
+    green.off()
+    red.off()
+    blue.off()
+
+def show_red():
+    green.off()
+    red.on()
+    blue.off()
+
+def show_blue():
+    green.off()
+    red.off()
+    blue.on()
+
+def show_green():
+    green.on()
+    red.off()
+    blue.off()
+
+def show_purple():
+    green.on()
+    red.on()
+    blue.off()
+
+def show_white():
+    print("green on")
+    green.on()
+    print("red on")
+    red.on()
+    print("blue on")
+    blue.on()
+
+
+def show_rainbow(time_period=3):
+    green.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
+    sleep(time_period)
+    red.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
+    sleep(time_period)
+    blue.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
+
+print("it starts here")
+active_color = 3
+color_option = {
+    # 0 : show_rainbow(6),
+    # 1 : show_rainbow(),
+    0 : show_white(),
+    1 : show_red(),
+    2 : show_blue(),
+    3 : show_green(),
+    4 : show_purple()
+}
+print(active_color)
+color_option[active_color]
+print("active color set to "+ str(active_color))
+#color_option[active_color]
+print("loop starts")
+while True:
+    print(active_color)
+    button.wait_for_press()
+    active_color += 1
+    if active_color >= len(color_option):
+        print("button pressed, resetting to 0")
+        active_color = 0
+    button.wait_for_release()
+    reset()
+    if active_color == 0:
+        show_white()
+    elif active_color == 1:
+        show_green()
+    elif active_color == 2:
+        show_blue()
+    elif active_color == 3:
+        show_red()
+    elif active_color == 4:
+        show_purple()
+
+    # color_option[active_color]
+    print("active color set to "+ str(active_color))
+pause()
