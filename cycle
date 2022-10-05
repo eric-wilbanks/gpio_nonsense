@@ -10,22 +10,18 @@ from threading import Timer
 green = PWMLED("12",initial_value=0)
 red   = PWMLED("13",initial_value=0)
 blue  = PWMLED("18",initial_value=0)
-global green_timer
-global red_timer
-global blue_timer
-
-green_timer = Timer(0, next)
-red_timer = Timer(0, next)
-blue_timer = Timer(0, next)
 button = Button(2)
 
-def reset():
+def reset(timer1,timer2,timer3):
     green.off()
     red.off()
     blue.off()
-    green_timer.cancel()
-    red_timer.cancel()
-    blue_timer.cancel()
+    # print("cancelling timer: "+ str(timer1))
+    timer1.cancel()
+    # print("cancelling timer: "+ str(timer2))
+    timer2.cancel()
+    # print("cancelling timer: "+ str(timer3))
+    timer3.cancel()
 
 def show_red():
     green.off()
@@ -43,23 +39,16 @@ def show_green():
     blue.off()
 
 def show_purple():
-    green.on()
+    green.off()
     red.on()
-    blue.off()
+    blue.on()
 
 def show_white():
     green.on()
     red.on()
     blue.on()
 
-def show_rainbow(time_period=3):
-    reset()
-    # green.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
-    # red_timer = Timer(
-    #     time_period,
-    #     red.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
-    # )
-    # blue_timer = Timer(5, blue.blink)
+def show_rainbow(time_period=3, ):
     kwargs={
         'on_time':0,
         'off_time':time_period,
@@ -86,54 +75,60 @@ def show_rainbow(time_period=3):
     green_timer.start()
     red_timer.start()
     blue_timer.start()
+    return(green_timer, red_timer, blue_timer)
 
 
-print("it starts here")
-active_color = 0
-color_option = {
-    0 : show_rainbow(1),
-    1 : show_red(),
-    2 : show_blue(),
-    3 : show_green(),
-    4 : show_purple(),
-    5 : show_white()
-}
+def main():
+    # setting some variables up
+    active_color = 5
+    green_timer = Timer(0, next)
+    red_timer = Timer(0, next)
+    blue_timer = Timer(0, next)
+ 
+    # we gotta start somewhere, might as well be at the end
+    show_white()
 
-print(active_color)
-color_option[active_color]
-print("active color set to "+ str(active_color))
-color_option[active_color]
-print("loop starts")
-while True:
 
-    print("Actuve thread count = "+str(threading.active_count()))
-    print(threading.enumerate())
-    button.wait_for_press()
-    reset()
-    active_color += 1
-    #if active_color == len(color_option):
-    if active_color == 5:
-        print("button pressed, resetting to 0")
-        active_color = 0
-    button.wait_for_release()
-    reset()
-    if active_color == 0:
-        show_rainbow()
-        print("rainbow")
-    elif active_color == 1:
-        show_green()
-        print("green")
-    elif active_color == 2:
-        show_blue()
-        print("blue")
-    elif active_color == 3:
-        show_red()
-        print("red")
-    elif active_color == 4:
-        show_purple()
-        print("purple")
-    elif active_color == 5:
-        show_white()
-        print("white")
 
-pause()
+    while True:
+
+        
+        # when Button gets pressed, color program gets cancelled, and the color profile incriments
+        button.wait_for_press()     
+        reset(green_timer, red_timer, blue_timer)
+        active_color += 1
+        
+        # if we exceed the number of color patterns, we start back at 0
+        if active_color == 6:
+            active_color = 0
+
+
+        # upon button release, we start the next color pattern    
+        button.wait_for_release()
+
+
+        if active_color == 0:
+            (green_timer, red_timer, blue_timer) = show_rainbow(1)
+            print("fast rainbow")
+        elif active_color == 1:
+            (green_timer, red_timer, blue_timer) = show_rainbow()
+            print("slow rainbow")
+        elif active_color == 2:
+            show_green()
+            print("green")
+        elif active_color == 3:
+            show_blue()
+            print("blue")
+        elif active_color == 4:
+            show_red()
+            print("red")
+        elif active_color == 5:
+            show_purple()
+            print("purple")
+        elif active_color == 6:
+            show_white()
+            print("white")
+    pause()
+
+# Here we run main
+main()
