@@ -4,16 +4,28 @@ from gpiozero import PWMLED
 from gpiozero import Button
 from time import sleep
 from signal import pause
+import threading
+from threading import Timer
 
 green = PWMLED("12",initial_value=0)
 red   = PWMLED("13",initial_value=0)
 blue  = PWMLED("18",initial_value=0)
+global green_timer
+global red_timer
+global blue_timer
+
+green_timer = Timer(0, next)
+red_timer = Timer(0, next)
+blue_timer = Timer(0, next)
 button = Button(2)
 
 def reset():
     green.off()
     red.off()
     blue.off()
+    green_timer.cancel()
+    red_timer.cancel()
+    blue_timer.cancel()
 
 def show_red():
     green.off()
@@ -36,57 +48,92 @@ def show_purple():
     blue.off()
 
 def show_white():
-    print("green on")
     green.on()
-    print("red on")
     red.on()
-    print("blue on")
     blue.on()
 
-
 def show_rainbow(time_period=3):
-    green.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
-    sleep(time_period)
-    red.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
-    sleep(time_period)
-    blue.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
+    reset()
+    # green.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
+    # red_timer = Timer(
+    #     time_period,
+    #     red.blink(on_time=0, off_time=time_period, fade_in_time=time_period, fade_out_time=time_period, n=None, background=True)
+    # )
+    # blue_timer = Timer(5, blue.blink)
+    kwargs={
+        'on_time':0,
+        'off_time':time_period,
+        'fade_in_time':time_period,
+        'fade_out_time':time_period,
+        'n':None,
+        'background':True
+    }
+    green_timer = Timer(
+        time_period * 0, 
+        green.blink,
+        kwargs=kwargs
+    )
+    red_timer = Timer(
+        time_period, 
+        red.blink,
+        kwargs=kwargs
+    )
+    blue_timer = Timer(
+        time_period * 2, 
+        blue.blink,
+        kwargs=kwargs
+    )
+    green_timer.start()
+    red_timer.start()
+    blue_timer.start()
+
 
 print("it starts here")
-active_color = 3
+active_color = 0
 color_option = {
-    # 0 : show_rainbow(6),
-    # 1 : show_rainbow(),
-    0 : show_white(),
+    0 : show_rainbow(1),
     1 : show_red(),
     2 : show_blue(),
     3 : show_green(),
-    4 : show_purple()
+    4 : show_purple(),
+    5 : show_white()
 }
+
 print(active_color)
 color_option[active_color]
 print("active color set to "+ str(active_color))
-#color_option[active_color]
+color_option[active_color]
 print("loop starts")
 while True:
-    print(active_color)
+
+    print("Actuve thread count = "+str(threading.active_count()))
+    print(threading.enumerate())
     button.wait_for_press()
+    reset()
     active_color += 1
-    if active_color >= len(color_option):
+    #if active_color == len(color_option):
+    if active_color == 5:
         print("button pressed, resetting to 0")
         active_color = 0
     button.wait_for_release()
     reset()
     if active_color == 0:
-        show_white()
+        show_rainbow()
+        print("rainbow")
     elif active_color == 1:
         show_green()
+        print("green")
     elif active_color == 2:
         show_blue()
+        print("blue")
     elif active_color == 3:
         show_red()
+        print("red")
     elif active_color == 4:
         show_purple()
+        print("purple")
+    elif active_color == 5:
+        show_white()
+        print("white")
 
-    # color_option[active_color]
-    print("active color set to "+ str(active_color))
 pause()
