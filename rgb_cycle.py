@@ -80,14 +80,13 @@ def show_rainbow(time_period=3, ):
 
 def main():
     # setting some variables up
-    active_color = 5
     green_timer = Timer(0, next)
     red_timer = Timer(0, next)
     blue_timer = Timer(0, next)
  
     # we gotta start somewhere, might as well be at the end
     show_white()
-
+    active_color = 6
 
 
     while True:
