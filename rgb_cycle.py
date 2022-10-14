@@ -7,9 +7,9 @@ from signal import pause
 import threading
 from threading import Timer
 
-green = PWMLED("12",initial_value=0)
-red   = PWMLED("13",initial_value=0)
-blue  = PWMLED("18",initial_value=0)
+green = PWMLED("12")
+red   = PWMLED("13")
+blue  = PWMLED("19")
 button = Button(2)
 
 def reset(timer1,timer2,timer3):
@@ -98,7 +98,7 @@ def main():
         active_color += 1
         
         # if we exceed the number of color patterns, we start back at 0
-        if active_color == 6:
+        if active_color >= 7:
             active_color = 0
 
 
