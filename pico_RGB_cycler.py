@@ -1,32 +1,37 @@
 #!/usr/bin/env python3
 # this is micropython, not regular python
 
-# from machine import Pin, PWM
-import utime
+from machine import Pin, PWM
 import _thread
-from time import sleep
+from utime import sleep_ms
+from ucollections import OrderedDict
 
 # Setting up the Hardware
-# button = Pin(2, Pin.IN, Pin.PULL_DOWN)
-# green = PWM(Pin(3, Pin.OUT))
-# red = PWM(Pin(4, Pin.OUT))
-# blue  = PWM(Pin(5, Pin.OUT))
-# onboard_led = Pin(25, Pin.OUT)
+button = Pin(2, Pin.IN, Pin.PULL_DOWN)
+green = PWM(Pin(3, Pin.OUT))
+red = PWM(Pin(4, Pin.OUT))
+blue  = PWM(Pin(5, Pin.OUT))
+onboard_led = Pin(25, Pin.OUT)
 
 # Setting up a variable to check to see if the button has been pressed and released.
-# button_pressed = False
+global button_pressed
+button_pressed = True
 
 # Setting a default color pattern
 active_color = 0
 
-colors = {
-    "white": [128, 128, 128]
-    "green": [255, 0, 0],
-    "red": [0, 255, 0],
-    "blue": [0, 0, 255],
-    "fast_rainbow": ['x', 'x', 'x']
-    "slow_rainbow": ['x', 'x', 'x']
-}
+global colors
+colors = OrderedDict(
+    [
+        ("off",			 [0, 0 ,0])
+        ("white",        [128, 128, 128]),
+        ("fast_rainbow", ['x', 'x', 'x']),
+        ("slow_rainbow", ['y', 'y', 'y']),
+        ("green",        [255, 0, 0]),
+        ("red",          [0, 255, 0]),
+        ("blue",         [0, 0, 255]),
+    ]
+)
 
 def rgb_wave(index):
     index = index % 765
@@ -48,40 +53,67 @@ def rgb_wave(index):
     return green, red, blue
 
 
+        
+
 def set_color(color_list):
     # resetting the button value
-    # global button_pressed = False\
-    print("green -"+color_list[0])
-    print("red -"+color_list[1])
-    print("blue -"+color_list[2])
-    #green.duty_u16(color_list[0])
-    #red.duty_u16(color_list[1])
-    #blue.duty_u16(color_list[2])
+    # global button_pressed
+    # button_pressed = False
+     
+    # print("green -"+str(color_list[0]))
+    green.duty_u16(color_list[0] * 256)
 
+    # print("red -"+str(color_list[1]))
+    red.duty_u16(color_list[1] * 256)
+    
+    # print("blue -"+str(color_list[2]))    
+    blue.duty_u16(color_list[2]* 256)
 
-def show_rainbow(delay, delay):
-    while True:
+    
+def rainbow(delay):
+    global button_pressed
+    while button_pressed == False:
         for index in range(255 * 3):
-            print(rgb(index))
-            sl
+            if button_pressed == True:
+                break
+            set_color(rgb_wave(index))
+            sleep_ms(delay)
 
 def reset_led():
+    print("resetting color")
     set_color([0, 0, 0])
 
-# def button_checker():
-#     global button_pressed = True
-#     global active_color =+ 1
-#     if active_color < 2
-#         active_color = 0
+def button_press_handler(pinfo):
+    global button_pressed
+    global active_color
+    button_pressed = True
+    active_color += 1
+    if active_color == len(colors):
+        active_color = 0
 
 # Setting up an interrupt request for the button pressanation
-# button.irq(trigger=Pin.IRQ_RISING, handler=button_checker)
+button.irq(trigger=Pin.IRQ_RISING, handler=button_press_handler)
+
+def show_the_right_color(color_list):
+    if color_list == ['x', 'x', 'x']:
+        rainbow(10)
+    elif color_list == ['y', 'y', 'y']:
+        rainbow(40)
+    else:
+        set_color(color_list)
 
 
-for index in range(255 * 3):
-    print(rgb_wave(index))
-    
-def main():
-    print("main")
+color_list = list(colors.keys())
+print(color_list)
+while True:
+    #  set_color(list(colors.values())[active_color])
+    if button_pressed == True:
+        button_pressed = False
+        reset_led()
+        print("showing "+color_list[active_color])
+        show_the_right_color((colors[color_list[active_color]]))
+        print("button was pressed")
+  
+# def main():
 
-main()
+# main()
